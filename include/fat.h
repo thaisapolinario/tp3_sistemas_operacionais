@@ -7,10 +7,10 @@
 #define TAMANHO_FAT 8192 // número de clusters * 2 bytes
 #define CLUSTER_FAT 8  
 #define ROOT 9 // cluster 9
-#define NOME_ARQUIVO 18  // 18 bytes para nome do arquivo
+#define NOME_ARQUIVO "fat.part"  // 18 bytes para nome do arquivo
 #define ENTRADA_DIRETORIO 32 // tamanho do cluster / 32, cada diretorio tem 32 bytes
 
-#define ATRIBUTO_ARQUVIVO 0
+#define ATRIBUTO_ARQUIVO 0
 #define ATRIBUTO_DIRETORIO 1
 
 #define FAT_LIVRE  0x0000
@@ -26,9 +26,19 @@ uint16_t primeiro_bloco;
 uint32_t tamanho; // tamanho em bytes
 } Entrada_diretorio;
 
+union dados_cluster {
+    Entrada_diretorio dir[ENTRADA_DIRETORIO];
+    uint8_t raw[TAMANHO_CLUSTER];
+};
+
+unsigned short fat[QUANTIDADE_CLUSTER];
 void zera_fat();
 void incia_fat();
-void carrega_fat();
+void carrega_fat(FILE *arquivo);
+int encontra_cluster_livre(FILE *arquivo);
+void salva_fat(FILE *arquivo);
+void encadeia_cluster(uint16_t cluster_atual, uint16_t cluster_proximo);
+void libera(uint16_t inicio);
 
 
 
