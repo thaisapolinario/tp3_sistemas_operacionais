@@ -4,10 +4,10 @@
 #include "fat.h"
 
 
-uint16_t fat[QUANTIDADE_CLUSTER];
-unsigned char bloco_de_boot[TAMANHO_CLUSTER];
-Entrada_diretorio diretorio_raiz[32];
-dados_cluster clusters[4086];
+
+dados_cluster bloco_de_boot;  
+dados_cluster diretorio_raiz; 
+dados_cluster clusters[QUANTIDADE_CLUSTER]; 
 
 
 void zera_fat(){
@@ -152,12 +152,12 @@ dados_cluster* encontra_diretorio_pai(dados_cluster* cluster_atual, char* caminh
 	int i=0;
 	while (i < 32) {
 		Entrada_diretorio filho = diretorio_atual[i];
-		if (strcmp(filho.arquivo, nome_diretorio) == 0 && caminho_restante){
+		if (strcmp((char*)filho.arquivo, nome_diretorio) == 0 && caminho_restante){
 			dados_cluster* cluster = carrega_cluster(filho.primeiro_bloco);
 			*endereco = filho.primeiro_bloco;
 			return encontra_diretorio_pai(cluster, caminho_restante, endereco);
 		}
-		else if (strcmp(filho.arquivo, nome_diretorio) == 0 && caminho_restante){
+		else if (strcmp((char*)filho.arquivo, nome_diretorio) == 0 && caminho_restante){
 			return NULL;
 		}
 		i++;

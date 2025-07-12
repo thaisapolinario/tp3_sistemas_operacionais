@@ -5,7 +5,7 @@
 #include "shell.h"
 
 //Copia a string de origem para a string de destino
-void copia_string(char* origem, char* destino){
+void copia_string(const char* origem, uint8_t* destino){
     int comprimento = strlen(origem);
     for (int i = 0; i < comprimento; i++) {
         destino[i] = origem[i];
@@ -13,7 +13,7 @@ void copia_string(char* origem, char* destino){
 }
 
 //Acha o último nome do arquivo ou diretório
-char* acha_nome(char* caminho){
+char* acha_nome(const char* caminho){
 
 	char copia_caminho[strlen(caminho)];
 	strcpy(copia_caminho, caminho);
@@ -31,7 +31,7 @@ void init(){
 	FILE* arquivo;
 	arquivo = fopen(NOME_ARQUIVO,"wb");
 	for (int i = 0; i < TAMANHO_CLUSTER; i++)
-		bloco_de_boot[i] = 0xbb;
+		bloco_de_boot.raw[i] = 0xbb;
 
 	fwrite(&bloco_de_boot, sizeof(bloco_de_boot), 1,arquivo);
 

@@ -1,8 +1,8 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-void copia_string(char* origem, char* destino);
-char* acha_nome(char* caminho);
+void copia_string(const char* origem, uint8_t* destino);
+char* acha_nome(const char* caminho);
 void init();
 void load();
 void ls(const char *caminho);

@@ -18,6 +18,6 @@ int main (){
         else if (strncmp(comando, "exit", 4) == 0) break;
         else printf("Comando não reconhecido.\n");
     }
-
+    init_fat(); 
     return 0;
 }
