@@ -32,6 +32,9 @@ typedef union dados_cluster {
 }dados_cluster;
 
 unsigned short fat[QUANTIDADE_CLUSTER];
+unsigned char bloco_de_boot[TAMANHO_CLUSTER];
+Entrada_diretorio diretorio_raiz[32];
+dados_cluster clusters[4086];
 void zera_fat();
 void incia_fat();
 void carrega_fat(FILE *arquivo);

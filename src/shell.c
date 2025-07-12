@@ -26,6 +26,32 @@ char* acha_nome(char* caminho){
 	return (char*) nome;
 }
 
+//Inicia o shell
+void init(){
+	FILE* arquivo;
+	arquivo = fopen(NOME_ARQUIVO,"wb");
+	for (int i = 0; i < TAMANHO_CLUSTER; i++)
+		bloco_de_boot[i] = 0xbb;
+
+	fwrite(&bloco_de_boot, sizeof(bloco_de_boot), 1,arquivo);
+
+	fat[0] = 0xfffd;
+	for (int i = 1; i < 9; i++)
+		fat[i] = 0xfffe;
+
+	fat[9] = 0xffff;
+	for (int i = 10; i < QUANTIDADE_CLUSTER; i++)
+		fat[i] = 0x0000;
+
+	fwrite(&fat, sizeof(fat), 1, arquivo);
+	fwrite(&diretorio_raiz, sizeof(diretorio_raiz), 1,arquivo);
+
+	for (int i = 0; i < 4086; i++)
+		fwrite(&clusters, sizeof(dados_cluster), 1, arquivo);
+
+	fclose(arquivo);
+}
+
 //Cria um diretório
 void mkdir(const char  *caminho, FILE *arquivo)
 {
