@@ -48,7 +48,7 @@ dados_cluster* carrega_cluster(int bloco);
 void escreve_cluster(int bloco, dados_cluster* cluster);
 dados_cluster* encontra_diretorio_pai(dados_cluster* cluster_atual, char* caminho, int* endereco);
 int encontra_espaco_livre(Entrada_diretorio* dir);
-
-
-
+dados_cluster* cluster_caminho(FILE *arquivo, dados_cluster *cluster_atual, const char *caminho, int *endereco);
+int entrada_diretorio(FILE *arquivo, const char *caminho, Entrada_diretorio *resultado, uint16_t *cluster_pai, int *indice);
+int le_cluster(FILE *arquivo, int bloco, dados_cluster *destino);
 #endif
