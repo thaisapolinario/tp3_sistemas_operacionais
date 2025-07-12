@@ -148,15 +148,13 @@ dados_cluster* carrega_cluster(int bloco) {
 }
 
 //Grava um cluster no arquivo fat.part
-void escreve_cluster(int bloco, dados_cluster* cluster){
-	FILE* arquivo;
-	arquivo = fopen(NOME_ARQUIVO, "r+b");
-	fseek(arquivo, bloco * sizeof(dados_cluster), SEEK_SET);
-	fwrite(cluster, sizeof(dados_cluster), 1, arquivo);
-	fclose(arquivo);
+void escreve_cluster(FILE* arquivo, int bloco, dados_cluster* cluster){
+    fseek(arquivo, bloco * sizeof(dados_cluster), SEEK_SET);
+    fwrite(cluster, sizeof(dados_cluster), 1, arquivo);
+    fflush(arquivo);  
 }
 
-dados_cluster* encontra_diretorio_pai(dados_cluster* cluster_atual, char* caminho, int* endereco){
+dados_cluster* encontra_diretorio_pai(dados_cluster* cluster_atual, const char* caminho, int* endereco){
 	char caminho_aux[strlen(caminho)];
 	strcpy(caminho_aux, caminho);
 	char* nome_diretorio = strtok(caminho_aux, "/");

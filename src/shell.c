@@ -53,10 +53,18 @@ void init(){
 }
 
 //Cria um diretório
-void mkdir(const char  *caminho, FILE *arquivo)
+void mkdir(const char  *caminho)
 {
-	if(caminho == "/")
-		return;
+
+    FILE* arquivo = fopen(NOME_ARQUIVO, "r+b");
+    if (!arquivo) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+	if (strcmp(caminho, "/") == 0){
+        return;
+    }
 
 	int endereco_raiz = 9;
 	dados_cluster* cluster_raiz = carrega_cluster(endereco_raiz);
@@ -71,10 +79,126 @@ void mkdir(const char  *caminho, FILE *arquivo)
 			copia_string(nome_diretorio, cluster_pai->dir[posicao_livre].arquivo);
 			cluster_pai->dir[posicao_livre].atributos = 1;
 			cluster_pai->dir[posicao_livre].primeiro_bloco = bloco_fat;
-			escreve_cluster(endereco_raiz, cluster_pai);
+			escreve_cluster(arquivo, endereco_raiz, cluster_pai);
 		}
 	}
 	else{
 	    printf("Caminho não encontrado\n");
     }
+}
+
+void ls(const char* caminho) {
+    FILE* arquivo = fopen(NOME_ARQUIVO, "rb");
+    if (!arquivo) {
+        perror("Erro ao abrir arquivo");
+        return;
+    }
+
+    int endereco_cluster = ROOT;
+    dados_cluster* cluster_raiz = carrega_cluster(ROOT);
+
+    dados_cluster* cluster = cluster_caminho(arquivo, cluster_raiz, caminho, &endereco_cluster);
+
+    for (int i = 0; i < ENTRADA_DIRETORIO; ++i) {
+        if (cluster->dir[i].atributos == ATRIBUTO_DIRETORIO ||
+            cluster->dir[i].atributos == ATRIBUTO_ARQUIVO) {
+            printf("%s\n", cluster->dir[i].arquivo);
+        }
+    }
+
+    fclose(arquivo);
+}
+
+void append(char* caminho, char* conteudo) {
+
+    FILE* arquivo = fopen(NOME_ARQUIVO, "r+b");
+    if (!arquivo) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    int endereco_inicial = ROOT;
+    dados_cluster* cluster_raiz = carrega_cluster(ROOT);
+    dados_cluster* cluster_atual = cluster_caminho(arquivo, cluster_raiz, caminho, &endereco_inicial);
+
+
+    // Percorre os clusters até o último
+    uint16_t bloco_atual = endereco_inicial;
+    while (fat[bloco_atual] != FAT_FIM) {
+        bloco_atual = fat[bloco_atual];
+    }
+
+    dados_cluster* ultimo_cluster = carrega_cluster(bloco_atual);
+
+    int usado = strlen((char*)ultimo_cluster->raw);
+    int disponivel = TAMANHO_CLUSTER - usado;
+
+    const char* ptr = conteudo;
+    int restante = strlen(conteudo);
+    int escrito = 0;
+
+    // Escreve no espaço restante do cluster atual
+    if (disponivel > 0) {
+        int n = (restante < disponivel) ? restante : disponivel;
+        strncat((char*)ultimo_cluster->raw, ptr, n);
+        escreve_cluster(arquivo, bloco_atual, ultimo_cluster);
+        ptr += n;
+        restante -= n;
+        escrito += n;
+    }
+
+    // Aloca novos clusters se necessário
+    while (restante > 0) {
+        int novo = encontra_cluster_livre(arquivo);
+
+        encadeia_cluster(bloco_atual, novo);
+        fat[novo] = FAT_FIM;
+        salva_fat(arquivo);
+
+        dados_cluster novo_cluster;
+        memset(&novo_cluster, 0, sizeof(dados_cluster));
+
+        int n = (restante < TAMANHO_CLUSTER) ? restante : TAMANHO_CLUSTER;
+        strncpy((char*)novo_cluster.raw, ptr, n);
+        escreve_cluster(arquivo,novo, &novo_cluster);
+
+        ptr += n;
+        restante -= n;
+        escrito += n;
+        bloco_atual = novo;
+    }
+
+    fclose(arquivo);
+}
+
+void read(const char* caminho) {
+
+    FILE* arquivo = fopen(NOME_ARQUIVO, "rb");
+    if (!arquivo) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    int endereco_inicial = ROOT;
+    dados_cluster* cluster_raiz = carrega_cluster(ROOT);
+    dados_cluster* cluster_atual = cluster_caminho(arquivo, cluster_raiz, caminho, &endereco_inicial);
+
+
+    uint16_t cluster_id = endereco_inicial;
+
+    while (cluster_id != FAT_FIM) {
+        dados_cluster* cluster = carrega_cluster(cluster_id);
+        if (!cluster) {
+            printf("Erro ao carregar cluster %d\n", cluster_id);
+            break;
+        }
+
+        cluster->raw[TAMANHO_CLUSTER - 1] = '\0';
+        printf("%s", (char*)cluster->raw);
+
+        cluster_id = fat[cluster_id];
+    }
+
+    printf("\n");
+    fclose(arquivo);
 }
