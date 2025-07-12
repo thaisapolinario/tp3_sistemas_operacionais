@@ -1,11 +1,12 @@
 #ifndef SHELL_H
 #define SHELL_H
 
+void copia_string(char* origem, char* destino);
+char* acha_nome(char* caminho);
 void init();
 void load();
 void ls(const char *caminho);
-void mkdir_arquivo(const char *caminho);
-void mkdir_diretorio(const char *caminho);
+void mkdir(const char *caminho, FILE *arquivo);
 void create(const char *caminho);
 void unlink (const char *caminho); // exclui arquivo ou diretorio
 void write(const char *caminho, const char *conteudo, int append);

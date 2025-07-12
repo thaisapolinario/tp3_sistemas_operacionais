@@ -63,7 +63,7 @@ void init_fat() {
 void carrega_fat(FILE *arquivo){
 
 
-    if (fseek(arquivo, TAMANHO_CLUSTER, SEEK_SET)){  // diretamento para a FAT
+    if (fseek(arquivo, TAMANHO_CLUSTER, SEEK_SET)){  // diretamente para a FAT
         fclose(arquivo);
         exit(1);
     } 
@@ -110,4 +110,67 @@ void libera_clusters(uint16_t inicio) {
         if (proximo == FAT_FIM) break;
         atual = proximo;
     }
+}
+
+// Carrega um cluster específico do sistema de arquivos virtual
+dados_cluster* carrega_cluster(int bloco){
+    dados_cluster* cluster;
+    cluster = calloc(1, sizeof(dados_cluster));
+    FILE* arquivo;
+    arquivo = fopen(NOME_ARQUIVO, "rb");
+
+    fseek(arquivo, bloco * sizeof(dados_cluster), SEEK_SET);
+
+    fread(cluster, sizeof(dados_cluster), 1, arquivo);
+
+    fclose(arquivo);
+
+    return cluster;
+}
+
+//Grava um cluster no arquivo fat.part
+void escreve_cluster(int bloco, dados_cluster* cluster){
+	FILE* arquivo;
+	arquivo = fopen(NOME_ARQUIVO, "r+b");
+	fseek(arquivo, bloco * sizeof(dados_cluster), SEEK_SET);
+	fwrite(cluster, sizeof(dados_cluster), 1, arquivo);
+	fclose(arquivo);
+}
+
+dados_cluster* encontra_diretorio_pai(dados_cluster* cluster_atual, char* caminho, int* endereco){
+	char caminho_aux[strlen(caminho)];
+	strcpy(caminho_aux, caminho);
+	char* nome_diretorio = strtok(caminho_aux, "/");
+	char* caminho_restante = strtok(NULL, "\0");
+
+	Entrada_diretorio* diretorio_atual = cluster_atual->dir;
+
+	int i=0;
+	while (i < 32) {
+		Entrada_diretorio filho = diretorio_atual[i];
+		if (strcmp(filho.arquivo, nome_diretorio) == 0 && caminho_restante){
+			dados_cluster* cluster = carrega_cluster(filho.primeiro_bloco);
+			*endereco = filho.primeiro_bloco;
+			return encontra_diretorio_pai(cluster, caminho_restante, endereco);
+		}
+		else if (strcmp(filho.arquivo, nome_diretorio) == 0 && caminho_restante){
+			return NULL;
+		}
+		i++;
+	}
+
+	if (!caminho_restante)
+		return cluster_atual;
+
+	return NULL;
+
+}
+
+int encontra_espaco_livre(Entrada_diretorio* dir){
+	for (int i = 0; i < 32; i++){
+		if (!dir->atributos)
+			return i;
+		dir++;
+	}
+	return -1;
 }

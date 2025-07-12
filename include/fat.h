@@ -26,10 +26,10 @@ uint16_t primeiro_bloco;
 uint32_t tamanho; // tamanho em bytes
 } Entrada_diretorio;
 
-union dados_cluster {
+typedef union dados_cluster {
     Entrada_diretorio dir[ENTRADA_DIRETORIO];
     uint8_t raw[TAMANHO_CLUSTER];
-};
+}dados_cluster;
 
 unsigned short fat[QUANTIDADE_CLUSTER];
 void zera_fat();
@@ -39,8 +39,10 @@ int encontra_cluster_livre(FILE *arquivo);
 void salva_fat(FILE *arquivo);
 void encadeia_cluster(uint16_t cluster_atual, uint16_t cluster_proximo);
 void libera(uint16_t inicio);
-
-
+dados_cluster* carrega_cluster(int bloco);
+void escreve_cluster(int bloco, dados_cluster* cluster);
+dados_cluster* encontra_diretorio_pai(dados_cluster* cluster_atual, char* caminho, int* endereco);
+int encontra_espaco_livre(Entrada_diretorio* dir);
 
 
 
